@@ -35,41 +35,32 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      price: double.parse(json['price'].toString()),
-      image: json['image'],
-      stock: json['stock'],
-      categoryId: json['category_id'],
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      image: json['image'] ?? '',
+      categoryId: json['category_id'] ?? 0,
+      stock: json['stock'] ?? 0,
       isFeatured: json['is_featured'] ?? false,
       isActive: json['is_active'] ?? true,
-      rating: double.parse(json['rating'].toString()),
-      reviewsCount: json['reviews_count'],
-      category: json['category'] != null
-          ? Category.fromJson(json['category'])
-          : null,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      reviewsCount: json['reviews_count'] ?? 0,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
       'description': description,
       'price': price,
       'image': image,
-      'stock': stock,
       'category_id': categoryId,
+      'stock': stock,
       'is_featured': isFeatured,
       'is_active': isActive,
-      'rating': rating,
-      'reviews_count': reviewsCount,
-      'category': category?.toJson(),
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
     };
   }
 
@@ -132,4 +123,4 @@ class Product {
 
   @override
   int get hashCode => id.hashCode;
-} 
+}

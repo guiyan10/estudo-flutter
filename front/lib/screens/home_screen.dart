@@ -6,6 +6,7 @@ import '../providers/category_provider.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/product_card.dart';
 import '../utils/constants.dart';
+import 'product_admin_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -179,6 +180,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   icon: const Icon(Icons.person_outline, color: Colors.white),
                   onPressed: () => context.go('/profile'),
+                ),
+                IconButton(
+                  icon: Icon(Icons.admin_panel_settings),
+                  tooltip: 'Admin Produtos',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ProductAdminScreen()),
+                    );
+                  },
                 ),
               ],
             ),

@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../models/product.dart';
+import '../utils/constants.dart';
 
 class ProductProvider extends ChangeNotifier {
   List<Product> _products = [];
@@ -16,63 +19,20 @@ class ProductProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
-      // TODO: Implementar chamada real para API
-      // Simulação de dados
-      await Future.delayed(const Duration(seconds: 1));
-
-      _products = [
-        Product(
-          id: 1,
-          name: 'Smartphone Galaxy S21',
-          description: 'Smartphone Samsung Galaxy S21 com câmera de 64MP',
-          price: 2999.99,
-          image: 'https://via.placeholder.com/300x300?text=Smartphone',
-          categoryId: 1,
-          stock: 10,
-          isFeatured: true,
-          isActive: true,
-          rating: 4.5,
-          reviewsCount: 120,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        Product(
-          id: 2,
-          name: 'Notebook Dell Inspiron',
-          description: 'Notebook Dell Inspiron 15 polegadas com Intel i5',
-          price: 3999.99,
-          image: 'https://via.placeholder.com/300x300?text=Notebook',
-          categoryId: 2,
-          stock: 5,
-          isFeatured: false,
-          isActive: true,
-          rating: 4.2,
-          reviewsCount: 85,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        Product(
-          id: 3,
-          name: 'Fone de Ouvido Bluetooth',
-          description: 'Fone de ouvido sem fio com cancelamento de ruído',
-          price: 299.99,
-          image: 'https://via.placeholder.com/300x300?text=Fone',
-          categoryId: 3,
-          stock: 20,
-          isFeatured: true,
-          isActive: true,
-          rating: 4.8,
-          reviewsCount: 200,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ];
-
-      _filteredProducts = _products;
-      _isLoading = false;
-      notifyListeners();
+      final response =
+          await http.get(Uri.parse('${ApiConstants.baseUrl}/products'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        _products = (data['data']['data'] as List)
+            .map((item) => Product.fromJson(item))
+            .toList();
+        _filteredProducts = _products;
+        _isLoading = false;
+        notifyListeners();
+      } else {
+        throw Exception('Erro ao buscar produtos');
+      }
     } catch (e) {
       _error = 'Erro ao carregar produtos: $e';
       _isLoading = false;
@@ -82,14 +42,81 @@ class ProductProvider extends ChangeNotifier {
 
   Future<Product?> fetchProductById(int id) async {
     try {
-      // TODO: Implementar chamada real para API
-      await Future.delayed(const Duration(seconds: 1));
-
-      return _products.firstWhere((product) => product.id == id);
+      final response =
+          await http.get(Uri.parse('${ApiConstants.baseUrl}/products/$id'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Product.fromJson(data['data']);
+      } else {
+        throw Exception('Erro ao buscar produto');
+      }
     } catch (e) {
       _error = 'Erro ao carregar produto: $e';
       notifyListeners();
       return null;
+    }
+  }
+
+  Future<bool> createProduct(Product product) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/products'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(product.toJson()),
+      );
+      if (response.statusCode == 201) {
+        await fetchProducts();
+        return true;
+      } else {
+        _error = 'Erro ao criar produto';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Erro ao criar produto: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateProduct(Product product) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConstants.baseUrl}/products/${product.id}'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(product.toJson()),
+      );
+      if (response.statusCode == 200) {
+        await fetchProducts();
+        return true;
+      } else {
+        _error = 'Erro ao atualizar produto';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Erro ao atualizar produto: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteProduct(int id) async {
+    try {
+      final response =
+          await http.delete(Uri.parse('${ApiConstants.baseUrl}/products/$id'));
+      if (response.statusCode == 200) {
+        await fetchProducts();
+        return true;
+      } else {
+        _error = 'Erro ao excluir produto';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Erro ao excluir produto: $e';
+      notifyListeners();
+      return false;
     }
   }
 
